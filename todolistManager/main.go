@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
 )
 
 func printOptions() {
@@ -16,17 +20,27 @@ func printOptions() {
 }
 
 func getOption() int {
-	var option int
-	fmt.Print("Enter your choice: ")
-	fmt.Scanln(&option)
+	reader := bufio.NewReader(os.Stdin)
 
-	if option < 1 || option > 5 {
-		fmt.Println("Invalid option. Please try again.")
-		fmt.Println()
-		return getOption()
+	for {
+		fmt.Print("Enter your choice: ")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("An error occurred while reading input. Please try again.")
+			fmt.Println()
+			continue
+		}
+
+		input = strings.TrimSpace(input)
+		option, err := strconv.Atoi(input)
+		if err != nil || option < 1 || option > 5 {
+			fmt.Println("Invalid option. Please try again.")
+			fmt.Println()
+			continue
+		}
+
+		return option
 	}
-
-	return option
 }
 
 type Task struct {
@@ -41,7 +55,7 @@ func main() {
 
 	fmt.Println("Welcome to the To-Do List Manager!")
 
-	for true {
+	for {
 		printOptions()
 		choice := getOption()
 
