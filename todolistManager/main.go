@@ -54,7 +54,7 @@ func main() {
 	tasks := make([]Task, 0)
 
 	fmt.Println("Welcome to the To-Do List Manager!")
-
+	reader := bufio.NewReader(os.Stdin)
 	for {
 		printOptions()
 		choice := getOption()
@@ -62,8 +62,7 @@ func main() {
 		switch choice {
 		case 1: //Add Task
 			fmt.Print("Enter task title: ")
-			var title string
-			fmt.Scanln(&title)
+			title, _ := reader.ReadString('\n')
 
 			task := Task{ID: len(tasks) + 1, Title: title, Status: "Pending"}
 			tasks = append(tasks, task)
@@ -81,10 +80,9 @@ func main() {
 			fmt.Scanln(&ID)
 
 			fmt.Print("Enter new status (Pending/Completed): ")
-			var newStatus string
-			fmt.Scanln(&newStatus)
+			newStatus, _ := reader.ReadString('\n')
 
-			// Variable to check if task was found
+			// Variable to check if task ID was found
 			taskFound := false
 			for i := range tasks {
 				if tasks[i].ID == ID {
