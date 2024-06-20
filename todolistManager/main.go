@@ -3,9 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func printOptions() {
@@ -44,12 +48,23 @@ func getOption() int {
 }
 
 type Task struct {
-	ID     int
+	ID     int `gorm:"primaryKey"`
 	Title  string
 	Status string
 }
 
 func main() {
+	dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Failed to connect to the database: %v", err)
+	}
+
+	fmt.Println("Successfully connected to the database")
+
+	// Migrate the schema
+	db.AutoMigrate(&Task{})
+
 	// Slize of tasks
 	tasks := make([]Task, 0)
 
