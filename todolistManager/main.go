@@ -48,9 +48,10 @@ func getOption() int {
 }
 
 type Task struct {
-	ID     int `gorm:"primaryKey"`
-	Title  string
-	Status string
+	ID        int `gorm:"primaryKey"`
+	Title     string
+	Status    string
+	isDeleted gorm.DeletedAt
 }
 
 func main() {
@@ -65,9 +66,6 @@ func main() {
 	// Migrate the schema
 	db.AutoMigrate(&Task{})
 
-	// Slize of tasks
-	tasks := make([]Task, 0)
-
 	fmt.Println("Welcome to the To-Do List Manager!")
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -79,64 +77,63 @@ func main() {
 			fmt.Print("Enter task title: ")
 			title, _ := reader.ReadString('\n')
 
-			task := Task{ID: len(tasks) + 1, Title: title, Status: "Pending"}
-			tasks = append(tasks, task)
+			task := Task{Title: title, Status: "Pending"}
+			result := db.Create(&task)
+
+			if result.Error != nil {
+				fmt.Println("An error occurred while adding the task. Please try again.")
+				continue
+			}
 
 			fmt.Println("Task added successfully!")
 
 		case 2: //View Tasks
-			for i := range tasks {
-				fmt.Println("ID:", tasks[i].ID, "| Title:", tasks[i].Title, "| Status:", tasks[i].Status)
+			var tasks []Task
+			result := db.Find(&tasks)
+
+			if result.Error != nil {
+				fmt.Println("An error occurred while fetching tasks. Please try again.")
+				continue
+			}
+
+			for _, task := range tasks {
+				fmt.Println("ID:", task.ID, "| Title:", task.Title, "| Status:", task.Status)
 			}
 
 		case 3: //Update task status
+			var task Task
 			fmt.Print("Enter task ID: ")
 			var ID int
 			fmt.Scanln(&ID)
+
+			result := db.First(&task, ID)
+
+			if result.Error != nil {
+				fmt.Println("Task with specified ID not found.")
+				continue
+			}
 
 			fmt.Print("Enter new status (Pending/Completed): ")
 			newStatus, _ := reader.ReadString('\n')
+			newStatus = strings.TrimSpace(newStatus)
 
-			// Variable to check if task ID was found
-			taskFound := false
-			for i := range tasks {
-				if tasks[i].ID == ID {
-					tasks[i].Status = newStatus
-					fmt.Println("Task status updated successfully!")
-					taskFound = true
-					break
-				}
-			}
-
-			if !taskFound {
-				fmt.Println("Task with specified ID not found.")
-			}
+			task.Status = newStatus
+			db.Save(&task)
 
 		case 4: //Delete Task
+			var task Task
 			fmt.Print("Enter task ID: ")
 			var ID int
 			fmt.Scanln(&ID)
 
-			// Variable to check if task was found
-			taskFound := false
-			for i := range tasks {
-				if tasks[i].ID == ID {
-					tasks = append(tasks[:i], tasks[i+1:]...)
+			result := db.Delete(&task, ID)
 
-					/* // Shift elements to the left to overwrite the element at index i
-					copy(tasks[i:], tasks[i+1:])
-					// Resize the slice to remove the last element
-					tasks = tasks[:len(tasks)-1]*/
-
-					fmt.Println("Task deleted successfully!")
-					taskFound = true
-					break
-				}
-			}
-
-			if !taskFound {
+			if result.RowsAffected == 0 {
 				fmt.Println("Task with specified ID not found.")
+				continue
 			}
+
+			fmt.Println("Task deleted successfully!")
 
 		case 5: //Exit
 			fmt.Println("Thank you for using the To-Do List Manager! Goodbye.")
