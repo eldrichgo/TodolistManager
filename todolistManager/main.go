@@ -3,13 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func printOptions() {
@@ -48,15 +51,31 @@ func getOption() int {
 }
 
 type Task struct {
-	ID        int `gorm:"primaryKey"`
-	Title     string
-	Status    string
-	isDeleted gorm.DeletedAt
+	ID        int    `gorm:"primaryKey"`
+	Title     string `gorm:"type:varchar(100)"`
+	Status    string `gorm:"type:varchar(20)"`
+	DeletedAt gorm.DeletedAt
+	//UpdatedAt gorm.UpdatedAt
+}
+
+func initLogger() logger.Interface {
+	logLevel := logger.Info
+	f, _ := os.Create("gorm.log")
+	newLogger := logger.New(
+		log.New(
+			io.MultiWriter(f, os.Stdout), "\r\n", log.LstdFlags), logger.Config{
+			Colorful:                  true,
+			LogLevel:                  logLevel,
+			SlowThreshold:             time.Second,
+			IgnoreRecordNotFoundError: true,
+		})
+
+	return newLogger
 }
 
 func main() {
 	dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: initLogger()})
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
@@ -106,19 +125,18 @@ func main() {
 			var ID int
 			fmt.Scanln(&ID)
 
-			result := db.First(&task, ID)
-
-			if result.Error != nil {
-				fmt.Println("Task with specified ID not found.")
-				continue
-			}
-
 			fmt.Print("Enter new status (Pending/Completed): ")
 			newStatus, _ := reader.ReadString('\n')
 			newStatus = strings.TrimSpace(newStatus)
 
+			task.ID = ID
 			task.Status = newStatus
-			db.Save(&task)
+			result := db.Updates(&task)
+
+			if result.Error != nil {
+				fmt.Println("An error occurred while updating the task. Please try again.")
+				continue
+			}
 
 		case 4: //Delete Task
 			var task Task
