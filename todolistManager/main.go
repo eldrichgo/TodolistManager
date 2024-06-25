@@ -55,7 +55,6 @@ type Task struct {
 	Title     string `gorm:"type:varchar(100)"`
 	Status    string `gorm:"type:varchar(20)"`
 	DeletedAt gorm.DeletedAt
-	//UpdatedAt gorm.UpdatedAt
 }
 
 func initLogger() logger.Interface {
