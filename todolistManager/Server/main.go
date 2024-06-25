@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -63,6 +64,7 @@ func main() {
 			return
 		}
 
+		task.Status = "Pending"
 		result := db.Create(&task)
 		if result.Error != nil {
 			log.Println("An error occurred while adding the task:", result.Error)
@@ -91,6 +93,56 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{
 			"tasks": tasks,
+		})
+	})
+
+	router.PUT("/updatetask/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		taskID, _ := strconv.Atoi(id)
+		var task Task
+
+		if err := c.ShouldBind(&task); err != nil {
+			log.Println("An error occurred while binding the JSON:", err)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid request. Please provide a valid task.",
+			})
+			return
+		}
+
+		// Set the task ID
+		task.ID = taskID
+
+		result := db.Updates(&task)
+		if result.Error != nil {
+			log.Println("An error occurred while updating the task:", result.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "An error occurred while updating the task. Please try again.",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"task": task,
+		})
+	})
+
+	router.DELETE("/deletetask/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		taskID, _ := strconv.Atoi(id)
+
+		var task Task
+
+		result := db.Delete(&task, taskID)
+		if result.Error != nil {
+			log.Println("An error occurred while deleting the task:", result.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "An error occurred while deleting the task. Please try again.",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Task deleted successfully!",
 		})
 	})
 
