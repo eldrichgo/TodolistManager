@@ -91,9 +91,10 @@ func main() {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"tasks": tasks,
-		})
+		c.JSON(http.StatusOK, tasks)
+		// c.JSON(http.StatusOK, gin.H{
+		// 	"tasks": tasks,
+		// })
 	})
 
 	router.PATCH("/updatetask/:id", func(c *gin.Context) {
@@ -123,7 +124,7 @@ func main() {
 		}
 
 		if result.RowsAffected == 0 {
-			fmt.Println("Task with specified ID not found.")
+			log.Println("Task with specified ID not found.")
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "Task with specified ID not found.",
 			})
