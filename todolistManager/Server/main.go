@@ -96,7 +96,7 @@ func main() {
 		})
 	})
 
-	router.PUT("/updatetask/:id", func(c *gin.Context) {
+	router.PATCH("/updatetask/:id", func(c *gin.Context) {
 		id := c.Param("id")
 		taskID, _ := strconv.Atoi(id)
 		var task Task
@@ -112,11 +112,20 @@ func main() {
 		// Set the task ID
 		task.ID = taskID
 
-		result := db.Updates(&task)
+		//result := db.Updates(&task) //updates all fields
+		result := db.Model(&task).Update("Status", task.Status)
 		if result.Error != nil {
 			log.Println("An error occurred while updating the task:", result.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "An error occurred while updating the task. Please try again.",
+			})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			fmt.Println("Task with specified ID not found.")
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Task with specified ID not found.",
 			})
 			return
 		}
@@ -137,6 +146,14 @@ func main() {
 			log.Println("An error occurred while deleting the task:", result.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "An error occurred while deleting the task. Please try again.",
+			})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			fmt.Println("Task with specified ID not found.")
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Task with specified ID not found.",
 			})
 			return
 		}
