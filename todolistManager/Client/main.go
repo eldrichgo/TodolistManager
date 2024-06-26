@@ -76,7 +76,6 @@ func main() {
 				fmt.Println("Error sending request:", err)
 				return
 			}
-
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
@@ -94,7 +93,6 @@ func main() {
 				fmt.Println("Error sending request:", err)
 				return
 			}
-
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
@@ -131,18 +129,44 @@ func main() {
 		// 		continue
 		// 	}
 
-		// case 4: //Delete Task
-		// 	var task Task
-		// 	fmt.Print("Enter task ID: ")
-		// 	var ID int
-		// 	fmt.Scanln(&ID)
+		case 4: //Delete Task
+			fmt.Print("Enter task ID: ")
+			var ID int
+			fmt.Scanln(&ID)
 
-		// 	if result.RowsAffected == 0 {
-		// 		fmt.Println("Task with specified ID not found.")
-		// 		continue
-		// 	}
+			// Create the request URL
+			url := fmt.Sprintf("http://localhost:8080/deletetask/%d", ID)
 
-		// 	fmt.Println("Task deleted successfully!")
+			// Create the HTTP DELETE request
+			req, err := http.NewRequest(http.MethodDelete, url, nil)
+			if err != nil {
+				fmt.Println("Error creating request:", err)
+				return
+			}
+
+			// Send the HTTP DELETE request
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				fmt.Println("Error sending request:", err)
+				return
+			}
+			defer resp.Body.Close()
+
+			// Check the response status
+			if resp.StatusCode != http.StatusOK {
+				var errMsg struct {
+					Error string `json:"error"`
+				}
+				if err := json.NewDecoder(resp.Body).Decode(&errMsg); err == nil {
+					fmt.Println("Error:", errMsg.Error)
+				} else {
+					fmt.Println("Error: received non-OK response code:", resp.StatusCode)
+				}
+				return
+			}
+
+			fmt.Println("Task deleted successfully!")
 
 		case 5: //Exit
 			fmt.Println("Thank you for using the To-Do List Manager! Goodbye.")
