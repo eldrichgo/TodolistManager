@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -47,6 +48,12 @@ func main() {
 	fmt.Println("Successfully connected to the database")
 
 	router := gin.Default()
+
+	// CORS middleware configuration
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"} // Allow requests from localhost:3000
+	config.AllowHeaders = []string{"Origin", "Content-Type"}
+	router.Use(cors.New(config))
 
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
