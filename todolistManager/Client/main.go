@@ -74,13 +74,13 @@ func main() {
 
 			if err != nil {
 				fmt.Println("Error sending request:", err)
-				return
+				break
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
 				fmt.Println("Error: received non-OK response code:", resp.StatusCode)
-				return
+				break
 			}
 
 			fmt.Println("Task added successfully!")
@@ -91,65 +91,53 @@ func main() {
 
 			if err != nil {
 				fmt.Println("Error sending request:", err)
-				return
+				break
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
 				fmt.Println("Error: received non-OK response code:", resp.StatusCode)
-				return
+				break
 			}
 
 			err = json.NewDecoder(resp.Body).Decode(&tasks)
 			if err != nil {
 				fmt.Println("An error occurred while decoding the response:", err)
-				return
+				break
 			}
 
 			for _, task := range tasks {
 				fmt.Println("ID:", task.ID, "| Title:", task.Title, "| Status:", task.Status)
 			}
 
-		// case 3: //Update task status
-		// 	var task Task
-		// 	fmt.Print("Enter task ID: ")
-		// 	var ID int
-		// 	fmt.Scanln(&ID)
-
-		// 	fmt.Print("Enter new status (Pending/Completed): ")
-		// 	newStatus, _ := reader.ReadString('\n')
-		// 	newStatus = strings.TrimSpace(newStatus)
-
-		// 	task.ID = ID
-		// 	task.Status = newStatus
-		// 	result := db.Updates(&task)
-
-		// 	if result.Error != nil {
-		// 		fmt.Println("An error occurred while updating the task. Please try again.")
-		// 		continue
-		// 	}
-
-		case 4: //Delete Task
+		case 3: //Update task status
+			var task Task
 			fmt.Print("Enter task ID: ")
 			var ID int
 			fmt.Scanln(&ID)
 
-			// Create the request URL
-			url := fmt.Sprintf("http://localhost:8080/deletetask/%d", ID)
+			fmt.Print("Enter new status (Pending/Completed): ")
+			newStatus, _ := reader.ReadString('\n')
+			newStatus = strings.TrimSpace(newStatus)
 
-			// Create the HTTP DELETE request
-			req, err := http.NewRequest(http.MethodDelete, url, nil)
+			task.Status = newStatus
+			taskJason, _ := json.Marshal(task)
+
+			// Create the request URL
+			url := fmt.Sprintf("http://localhost:8080/updatetask/%d", ID)
+
+			// Create the HTTP request
+			req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(taskJason))
 			if err != nil {
 				fmt.Println("Error creating request:", err)
-				return
 			}
+			req.Header.Set("Content-Type", "application/json")
 
-			// Send the HTTP DELETE request
+			// Send the HTTP request
 			client := &http.Client{}
 			resp, err := client.Do(req)
 			if err != nil {
 				fmt.Println("Error sending request:", err)
-				return
 			}
 			defer resp.Body.Close()
 
@@ -163,7 +151,46 @@ func main() {
 				} else {
 					fmt.Println("Error: received non-OK response code:", resp.StatusCode)
 				}
-				return
+				break
+			}
+
+			fmt.Println("Task updated successfully!")
+
+		case 4: //Delete Task
+			fmt.Print("Enter task ID: ")
+			var ID int
+			fmt.Scanln(&ID)
+
+			// Create the request URL
+			url := fmt.Sprintf("http://localhost:8080/deletetask/%d", ID)
+
+			// Create the HTTP DELETE request
+			req, err := http.NewRequest(http.MethodDelete, url, nil)
+			if err != nil {
+				fmt.Println("Error creating request:", err)
+				break
+			}
+
+			// Send the HTTP DELETE request
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				fmt.Println("Error sending request:", err)
+				break
+			}
+			defer resp.Body.Close()
+
+			// Check the response status
+			if resp.StatusCode != http.StatusOK {
+				var errMsg struct {
+					Error string `json:"error"`
+				}
+				if err := json.NewDecoder(resp.Body).Decode(&errMsg); err == nil {
+					fmt.Println("Error:", errMsg.Error)
+				} else {
+					fmt.Println("Error: received non-OK response code:", resp.StatusCode)
+				}
+				break
 			}
 
 			fmt.Println("Task deleted successfully!")
