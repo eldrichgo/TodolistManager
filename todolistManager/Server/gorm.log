@@ -1,0 +1,9 @@
+
+2024/07/01 11:58:15 [32mD:/GoLang Projects/todolistManager/server/dal/repository/todo_repository.go:33
+[0m[33m[166.626ms] [34;1m[rows:4][0m SELECT * FROM "tasks" WHERE "tasks"."deleted_at" IS NULL
+
+2024/07/01 11:58:34 [32mD:/GoLang Projects/todolistManager/server/dal/repository/todo_repository.go:28
+[0m[33m[7.510ms] [34;1m[rows:1][0m INSERT INTO "tasks" ("title","status","deleted_at") VALUES ('repo design','Pending',NULL) RETURNING "id"
+
+2024/07/01 11:58:35 [32mD:/GoLang Projects/todolistManager/server/dal/repository/todo_repository.go:33
+[0m[33m[0.536ms] [34;1m[rows:5][0m SELECT * FROM "tasks" WHERE "tasks"."deleted_at" IS NULL

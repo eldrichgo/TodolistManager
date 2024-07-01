@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,6 +12,10 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"server/dal/repository"
+	"server/dal/service"
+	"server/models"
 )
 
 func initLogger() logger.Interface {
@@ -30,13 +33,6 @@ func initLogger() logger.Interface {
 	return newLogger
 }
 
-type Task struct {
-	ID        int    `gorm:"primaryKey"`
-	Title     string `gorm:"type:varchar(100)"`
-	Status    string `gorm:"type:varchar(20)"`
-	DeletedAt gorm.DeletedAt
-}
-
 func main() {
 	dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: initLogger()})
@@ -44,18 +40,17 @@ func main() {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
-	fmt.Println("Successfully connected to the database")
+	// Migrate the schema
+	//db.AutoMigrate(&models.Task{})
+
+	// Initialize repository and service
+	taskRepo := repository.NewTaskRepository(db)
+	taskService := service.NewTaskService(taskRepo)
 
 	router := gin.Default()
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
 	router.POST("/addtask", func(c *gin.Context) {
-		var task Task
+		var task models.Task
 		if err := c.ShouldBind(&task); err != nil {
 			log.Println("An error occurred while binding the JSON:", err)
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -65,9 +60,8 @@ func main() {
 		}
 
 		task.Status = "Pending"
-		result := db.Create(&task)
-		if result.Error != nil {
-			log.Println("An error occurred while adding the task:", result.Error)
+		if err := taskService.CreateTask(&task); err != nil {
+			log.Println("An error occurred while adding the task:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "An error occurred while adding the task. Please try again.",
 			})
@@ -80,11 +74,9 @@ func main() {
 	})
 
 	router.GET("/viewtasks", func(c *gin.Context) {
-		var tasks []Task
-		result := db.Find(&tasks)
-
-		if result.Error != nil {
-			log.Println("An error occurred while fetching tasks:", result.Error)
+		tasks, err := taskService.GetAllTasks()
+		if err != nil {
+			log.Println("An error occurred while fetching tasks:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "An error occurred while fetching tasks. Please try again.",
 			})
@@ -92,15 +84,12 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, tasks)
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"tasks": tasks,
-		// })
 	})
 
 	router.PATCH("/updatetask/:id", func(c *gin.Context) {
 		id := c.Param("id")
 		taskID, _ := strconv.Atoi(id)
-		var task Task
+		var task models.Task
 
 		if err := c.ShouldBind(&task); err != nil {
 			log.Println("An error occurred while binding the JSON:", err)
@@ -110,23 +99,10 @@ func main() {
 			return
 		}
 
-		// Set the task ID
-		task.ID = taskID
-
-		//result := db.Updates(&task) //updates all fields
-		result := db.Model(&task).Update("Status", task.Status)
-		if result.Error != nil {
-			log.Println("An error occurred while updating the task:", result.Error)
+		if err := taskService.UpdateTaskStatus(taskID, task.Status); err != nil {
+			log.Println("An error occurred while updating the task:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "An error occurred while updating the task. Please try again.",
-			})
-			return
-		}
-
-		if result.RowsAffected == 0 {
-			log.Println("Task with specified ID not found.")
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Task with specified ID not found.",
 			})
 			return
 		}
@@ -140,21 +116,10 @@ func main() {
 		id := c.Param("id")
 		taskID, _ := strconv.Atoi(id)
 
-		var task Task
-
-		result := db.Delete(&task, taskID)
-		if result.Error != nil {
-			log.Println("An error occurred while deleting the task:", result.Error)
+		if err := taskService.DeleteTask(taskID); err != nil {
+			log.Println("An error occurred while deleting the task:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "An error occurred while deleting the task. Please try again.",
-			})
-			return
-		}
-
-		if result.RowsAffected == 0 {
-			fmt.Println("Task with specified ID not found.")
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Task with specified ID not found.",
 			})
 			return
 		}
