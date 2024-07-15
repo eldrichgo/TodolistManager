@@ -3,19 +3,18 @@ package main
 import (
 	"io"
 	"log"
-	"net/http"
 	"os"
-	"strconv"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"server/dal/repository"
-	"server/dal/service"
-	"server/models"
+	"server/graph"
+	r "server/graph"
 )
 
 func initLogger() logger.Interface {
@@ -43,91 +42,22 @@ func main() {
 	// Migrate the schema
 	//db.AutoMigrate(&models.Task{})
 
-	// Initialize repository and service
-	taskRepo := repository.NewTaskRepository(db)
-	taskService := service.NewTaskService(taskRepo)
+	// Initialize resolver
+	resolver := &r.Resolver{Db: db}
+	// Initialize schema
+	schema := graph.NewExecutableSchema(graph.Config{Resolvers: resolver})
+	h := handler.NewDefaultServer(schema)
 
 	router := gin.Default()
 
-	router.POST("/addtask", func(c *gin.Context) {
-		var task models.Task
-		if err := c.ShouldBind(&task); err != nil {
-			log.Println("An error occurred while binding the JSON:", err)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid request. Please provide a valid task.",
-			})
-			return
-		}
-
-		task.Status = "Pending"
-		if err := taskService.CreateTask(&task); err != nil {
-			log.Println("An error occurred while adding the task:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "An error occurred while adding the task. Please try again.",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"task": task,
-		})
+	router.POST("/query", func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
 	})
 
-	router.GET("/viewtasks", func(c *gin.Context) {
-		tasks, err := taskService.GetAllTasks()
-		if err != nil {
-			log.Println("An error occurred while fetching tasks:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "An error occurred while fetching tasks. Please try again.",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, tasks)
+	router.GET("/", func(c *gin.Context) {
+		playground.Handler("GraphQL", "/query").ServeHTTP(c.Writer, c.Request)
 	})
 
-	router.PATCH("/updatetask/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		taskID, _ := strconv.Atoi(id)
-		var task models.Task
-
-		if err := c.ShouldBind(&task); err != nil {
-			log.Println("An error occurred while binding the JSON:", err)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid request. Please provide a valid task.",
-			})
-			return
-		}
-
-		if err := taskService.UpdateTaskStatus(taskID, task.Status); err != nil {
-			log.Println("An error occurred while updating the task:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "An error occurred while updating the task. Please try again.",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"task": task,
-		})
-	})
-
-	router.DELETE("/deletetask/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		taskID, _ := strconv.Atoi(id)
-
-		if err := taskService.DeleteTask(taskID); err != nil {
-			log.Println("An error occurred while deleting the task:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "An error occurred while deleting the task. Please try again.",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Task deleted successfully!",
-		})
-	})
-
-	router.Run()
+	log.Printf("connect to http://localhost:8080/ for GraphQL playground")
+	log.Fatal(router.Run(":8080"))
 }

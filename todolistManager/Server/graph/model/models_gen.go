@@ -2,6 +2,11 @@
 
 package model
 
+type InputTask struct {
+	Title  string `json:"title"`
+	Status string `json:"status"`
+}
+
 type Mutation struct {
 }
 
@@ -9,7 +14,7 @@ type Query struct {
 }
 
 type Task struct {
-	ID     string `json:"id"`
+	ID     int    `json:"id"`
 	Title  string `json:"title"`
 	Status string `json:"status"`
 }
