@@ -6,69 +6,36 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"server/dal/todo"
 	"server/graph/model"
-	"strconv"
 )
 
 // CreateTask is the resolver for the createTask field.
 func (r *mutationResolver) CreateTask(ctx context.Context, input model.InputTask) (*model.Task, error) {
 	svc := todo.NewTaskService(todo.NewTaskRepository(r.Db))
-	t, err := svc.CreateTask(input)
-
+	task, err := svc.CreateTask(input)
 	if err != nil {
 		return nil, err
 	}
 
-	return t, nil
+	return task, nil
 }
 
 // UpdateTask is the resolver for the updateTask field.
-func (r *mutationResolver) UpdateTask(ctx context.Context, id string, title *string, status *string) (*model.Task, error) {
+func (r *mutationResolver) UpdateTask(ctx context.Context, id int, status string) (*model.Task, error) {
 	svc := todo.NewTaskService(todo.NewTaskRepository(r.Db))
-	taskID, err := strconv.Atoi(id)
-	if err != nil {
-		return nil, fmt.Errorf("invalid task ID format")
-	}
-	// Get all tasks and find the task to be updated
-	tasks, err := svc.GetAllTasks()
-	if err != nil {
-		return nil, err
-	}
-	var task *model.Task
-	for _, t := range tasks {
-		if t.ID == taskID {
-			task = &t
-			break
-		}
-	}
-	if task == nil {
-		return nil, fmt.Errorf("task not found")
-	}
-	if title != nil {
-		task.Title = *title
-	}
-	if status != nil {
-		task.Status = *status
-	}
-
-	t, err := svc.UpdateTaskStatus(task.ID, task.Status)
+	task, err := svc.UpdateTaskStatus(id, status)
 	if err != nil {
 		return nil, err
 	}
 
-	return t, nil
+	return task, nil
 }
 
 // DeleteTask is the resolver for the deleteTask field.
-func (r *mutationResolver) DeleteTask(ctx context.Context, id string) (*bool, error) {
+func (r *mutationResolver) DeleteTask(ctx context.Context, id int) (*bool, error) {
 	svc := todo.NewTaskService(todo.NewTaskRepository(r.Db))
-	taskID, err := strconv.Atoi(id)
-	if err != nil {
-		return nil, fmt.Errorf("invalid task ID format")
-	}
-	err = svc.DeleteTask(taskID)
+	err := svc.DeleteTask(id)
 	if err != nil {
 		return nil, err
 	}

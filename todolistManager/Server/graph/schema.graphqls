@@ -15,6 +15,6 @@ input InputTask {
 
 type Mutation {
   createTask(input: InputTask!): Task
-  updateTask(id: ID!, title: String, status: String): Task
-  deleteTask(id: ID!): Boolean
+  updateTask(id: Int!, status: String!): Task
+  deleteTask(id: Int!): Boolean
 }

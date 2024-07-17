@@ -44,6 +44,7 @@ func main() {
 
 	// Initialize resolver
 	resolver := &r.Resolver{Db: db}
+
 	// Initialize schema
 	schema := graph.NewExecutableSchema(graph.Config{Resolvers: resolver})
 	h := handler.NewDefaultServer(schema)

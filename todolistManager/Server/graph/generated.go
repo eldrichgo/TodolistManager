@@ -49,8 +49,8 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateTask func(childComplexity int, input model.InputTask) int
-		DeleteTask func(childComplexity int, id string) int
-		UpdateTask func(childComplexity int, id string, title *string, status *string) int
+		DeleteTask func(childComplexity int, id int) int
+		UpdateTask func(childComplexity int, id int, status string) int
 	}
 
 	Query struct {
@@ -66,8 +66,8 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateTask(ctx context.Context, input model.InputTask) (*model.Task, error)
-	UpdateTask(ctx context.Context, id string, title *string, status *string) (*model.Task, error)
-	DeleteTask(ctx context.Context, id string) (*bool, error)
+	UpdateTask(ctx context.Context, id int, status string) (*model.Task, error)
+	DeleteTask(ctx context.Context, id int) (*bool, error)
 }
 type QueryResolver interface {
 	Tasks(ctx context.Context) ([]*model.Task, error)
@@ -114,7 +114,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTask(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTask(childComplexity, args["id"].(int)), true
 
 	case "Mutation.updateTask":
 		if e.complexity.Mutation.UpdateTask == nil {
@@ -126,7 +126,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTask(childComplexity, args["id"].(string), args["title"].(*string), args["status"].(*string)), true
+		return e.complexity.Mutation.UpdateTask(childComplexity, args["id"].(int), args["status"].(string)), true
 
 	case "Query.tasks":
 		if e.complexity.Query.Tasks == nil {
@@ -299,10 +299,10 @@ func (ec *executionContext) field_Mutation_createTask_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_deleteTask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -314,33 +314,24 @@ func (ec *executionContext) field_Mutation_deleteTask_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_updateTask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["title"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["title"] = arg1
-	var arg2 *string
+	var arg1 string
 	if tmp, ok := rawArgs["status"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["status"] = arg2
+	args["status"] = arg1
 	return args, nil
 }
 
@@ -471,7 +462,7 @@ func (ec *executionContext) _Mutation_updateTask(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTask(rctx, fc.Args["id"].(string), fc.Args["title"].(*string), fc.Args["status"].(*string))
+		return ec.resolvers.Mutation().UpdateTask(rctx, fc.Args["id"].(int), fc.Args["status"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -531,7 +522,7 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTask(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Mutation().DeleteTask(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3205,21 +3196,6 @@ func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interf
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
