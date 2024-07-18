@@ -34,7 +34,7 @@ func (r *Task) Create(task *model.Task) (*model.Task, error) {
 
 func (r *Task) FindAll() ([]model.Task, error) {
 	var tasks []model.Task
-	err := r.db.Find(&tasks).Error
+	err := r.db.Where("deleted_at is null").Find(&tasks).Error
 	return tasks, err
 }
 
@@ -54,4 +54,5 @@ func (r *Task) UpdateStatus(taskID int, status string) (*model.Task, error) {
 
 func (r *Task) Delete(taskID int) error {
 	return r.db.Delete(&model.Task{}, taskID).Error
+	// time.Time.UTC()
 }
