@@ -41,13 +41,13 @@ func (r *Todo) CreateTask(task *model.Task) (*model.Task, error) {
 
 func (r *Todo) FindAllTasks() ([]model.Task, error) {
 	var tasks []model.Task
-	err := r.db.Where("deleted_at is null").Find(&tasks).Error
+	err := r.db.Where("deleted_at IS NULL").Find(&tasks).Error
 	return tasks, err
 }
 
 func (r *Todo) FindTask(taskID int) (*model.Task, error) {
 	var task *model.Task
-	if err := r.db.First(&task, taskID).Error; err != nil {
+	if err := r.db.Where("deleted_at IS NULL").First(&task, taskID).Error; err != nil {
 		return nil, err
 	}
 
@@ -56,7 +56,7 @@ func (r *Todo) FindTask(taskID int) (*model.Task, error) {
 func (r *Todo) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	var task *model.Task
 
-	if err := r.db.Model(&model.Task{}).Where("id = ?", taskID).Update("status", status).Error; err != nil {
+	if err := r.db.Model(&model.Task{}).Where("deleted_at IS NULL and id = ?", taskID).Update("status", status).Error; err != nil {
 		return nil, err
 	}
 
@@ -70,4 +70,45 @@ func (r *Todo) UpdateTaskStatus(taskID int, status string) (*model.Task, error) 
 func (r *Todo) DeleteTask(taskID int) error {
 	return r.db.Delete(&model.Task{}, taskID).Error
 	// time.Time.UTC()
+}
+
+func (r *Todo) CreateUser(user *model.User) (*model.User, error) {
+	if err := r.db.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *Todo) FindAllUsers() ([]model.User, error) {
+	var users []model.User
+	err := r.db.Where("deleted_at IS NULL").Find(&users).Error
+	return users, err
+}
+
+func (r *Todo) FindUser(userID int) (*model.User, error) {
+	var user *model.User
+	if err := r.db.Where("deleted_at IS NULL").First(&user, userID).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *Todo) UpdateUserName(userID int, name string) (*model.User, error) {
+	var user *model.User
+
+	if err := r.db.Model(&model.User{}).Where("deleted_at IS NULL and id = ?", userID).Update("name", name).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.First(&user, userID).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *Todo) DeleteUser(userID int) error {
+	return r.db.Delete(&model.User{}, userID).Error
 }
