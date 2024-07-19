@@ -18,3 +18,8 @@ type Task struct {
 	Title  string `json:"title"`
 	Status string `json:"status"`
 }
+
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}

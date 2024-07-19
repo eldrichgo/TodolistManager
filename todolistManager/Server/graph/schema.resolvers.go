@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"server/dal/todo"
 	"server/graph/model"
 )
@@ -72,6 +73,16 @@ func (r *queryResolver) Task(ctx context.Context, id int) (*model.Task, error) {
 	}
 
 	return task, nil
+}
+
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented: Users - users"))
+}
+
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
 }
 
 // Mutation returns MutationResolver implementation.
