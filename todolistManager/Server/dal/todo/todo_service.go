@@ -4,11 +4,11 @@ import "server/graph/model"
 
 // TaskService is the implementation of TaskServiceInterface
 type TaskService struct {
-	repo TaskRepository
+	repo TodoRepository
 }
 
 // NewTaskService creates a new instance of TaskService
-func NewTaskService(repo TaskRepository) *TaskService {
+func NewTaskService(repo TodoRepository) *TaskService {
 	return &TaskService{repo: repo}
 }
 
