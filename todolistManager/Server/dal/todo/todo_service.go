@@ -40,3 +40,27 @@ func (s *TodoService) UpdateTaskStatus(taskID int, status string) (*model.Task, 
 func (s *TodoService) DeleteTask(taskID int) error {
 	return s.repo.DeleteTask(taskID)
 }
+
+func (s *TodoService) CreateUser(name string) (*model.User, error) {
+	user := &model.User{
+		Name: name,
+	}
+
+	return s.repo.CreateUser(user)
+}
+
+func (s *TodoService) GetAllUsers() ([]model.User, error) {
+	return s.repo.FindAllUsers()
+}
+
+func (s *TodoService) GetUser(userID int) (*model.User, error) {
+	return s.repo.FindUser(userID)
+}
+
+func (s *TodoService) UpdateUserName(userID int, name string) (*model.User, error) {
+	return s.repo.UpdateUserName(userID, name)
+}
+
+func (s *TodoService) DeleteUser(userID int) error {
+	return s.repo.DeleteUser(userID)
+}
