@@ -26,7 +26,7 @@ type Todo struct {
 	db *gorm.DB
 }
 
-// NewTaskRepository creates a new instance of TaskRepository
+// NewTodoRepository creates a new instance of TaskRepository
 func NewTodoRepository(db *gorm.DB) TodoRepository {
 	return &Todo{db: db}
 }

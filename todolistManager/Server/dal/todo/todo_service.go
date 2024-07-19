@@ -2,17 +2,17 @@ package todo
 
 import "server/graph/model"
 
-// TaskService is the implementation of TaskServiceInterface
-type TaskService struct {
+// TodoService defines the methods that any implementation of a todo service must have
+type TodoService struct {
 	repo TodoRepository
 }
 
-// NewTaskService creates a new instance of TaskService
-func NewTaskService(repo TodoRepository) *TaskService {
-	return &TaskService{repo: repo}
+// NewTodoService creates a new instance of TodoService
+func NewTodoService(repo TodoRepository) *TodoService {
+	return &TodoService{repo: repo}
 }
 
-func (s *TaskService) CreateTask(taskinput model.InputTask) (*model.Task, error) {
+func (s *TodoService) CreateTask(taskinput model.InputTask) (*model.Task, error) {
 	if taskinput.Status == "" {
 		taskinput.Status = "Pending"
 	}
@@ -25,18 +25,18 @@ func (s *TaskService) CreateTask(taskinput model.InputTask) (*model.Task, error)
 	return s.repo.CreateTask(task)
 }
 
-func (s *TaskService) GetAllTasks() ([]model.Task, error) {
+func (s *TodoService) GetAllTasks() ([]model.Task, error) {
 	return s.repo.FindAllTasks()
 }
 
-func (s *TaskService) GetTask(taskID int) (*model.Task, error) {
+func (s *TodoService) GetTask(taskID int) (*model.Task, error) {
 	return s.repo.FindTask(taskID)
 }
 
-func (s *TaskService) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
+func (s *TodoService) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	return s.repo.UpdateTaskStatus(taskID, status)
 }
 
-func (s *TaskService) DeleteTask(taskID int) error {
+func (s *TodoService) DeleteTask(taskID int) error {
 	return s.repo.DeleteTask(taskID)
 }

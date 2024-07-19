@@ -13,7 +13,7 @@ import (
 
 // CreateTask is the resolver for the createTask field.
 func (r *mutationResolver) CreateTask(ctx context.Context, input model.InputTask) (*model.Task, error) {
-	svc := todo.NewTaskService(todo.NewTodoRepository(r.Db))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	task, err := svc.CreateTask(input)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input model.InputTask
 
 // UpdateTask is the resolver for the updateTask field.
 func (r *mutationResolver) UpdateTask(ctx context.Context, id int, status string) (*model.Task, error) {
-	svc := todo.NewTaskService(todo.NewTodoRepository(r.Db))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	task, err := svc.UpdateTaskStatus(id, status)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (r *mutationResolver) UpdateTask(ctx context.Context, id int, status string
 
 // DeleteTask is the resolver for the deleteTask field.
 func (r *mutationResolver) DeleteTask(ctx context.Context, id int) (*bool, error) {
-	svc := todo.NewTaskService(todo.NewTodoRepository(r.Db))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	err := svc.DeleteTask(id)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r *mutationResolver) DeleteTask(ctx context.Context, id int) (*bool, error
 
 // Tasks is the resolver for the tasks field.
 func (r *queryResolver) Tasks(ctx context.Context) ([]*model.Task, error) {
-	svc := todo.NewTaskService(todo.NewTodoRepository(r.Db))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	tasks, err := svc.GetAllTasks()
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r *queryResolver) Tasks(ctx context.Context) ([]*model.Task, error) {
 
 // Task is the resolver for the task field.
 func (r *queryResolver) Task(ctx context.Context, id int) (*model.Task, error) {
-	svc := todo.NewTaskService(todo.NewTodoRepository(r.Db))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	task, err := svc.GetTask(id)
 	if err != nil {
 		return nil, err
