@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"server/dal/todo"
 	"server/graph/model"
 )
@@ -22,8 +21,8 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input model.InputTask
 	return task, nil
 }
 
-// UpdateTask is the resolver for the updateTask field.
-func (r *mutationResolver) UpdateTask(ctx context.Context, id int, status string) (*model.Task, error) {
+// UpdateTaskStatus is the resolver for the updateTaskStatus field.
+func (r *mutationResolver) UpdateTaskStatus(ctx context.Context, id int, status string) (*model.Task, error) {
 	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	task, err := svc.UpdateTaskStatus(id, status)
 	if err != nil {
@@ -40,6 +39,41 @@ func (r *mutationResolver) DeleteTask(ctx context.Context, id int) (*bool, error
 	if err != nil {
 		return nil, err
 	}
+
+	success := true
+	return &success, nil
+}
+
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, name string) (*model.User, error) {
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	user, err := svc.CreateUser(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// UpdateUserName is the resolver for the updateUserName field.
+func (r *mutationResolver) UpdateUserName(ctx context.Context, id int, name string) (*model.User, error) {
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	user, err := svc.UpdateUserName(id, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// DeleteUser is the resolver for the deleteUser field.
+func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (*bool, error) {
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	err := svc.DeleteUser(id)
+	if err != nil {
+		return nil, err
+	}
+
 	success := true
 	return &success, nil
 }
@@ -77,12 +111,32 @@ func (r *queryResolver) Task(ctx context.Context, id int) (*model.Task, error) {
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	users, err := svc.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*model.User
+	for _, user := range users {
+		result = append(result, &model.User{
+			ID:   user.ID,
+			Name: user.Name,
+		})
+	}
+
+	return result, nil
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	user, err := svc.GetUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -93,3 +147,19 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) UpdateTask(ctx context.Context, id int, status string) (*model.Task, error) {
+	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	task, err := svc.UpdateTaskStatus(id, status)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
+}

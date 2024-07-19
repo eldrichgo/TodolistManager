@@ -34,6 +34,10 @@ func (s *TodoService) GetTask(taskID int) (*model.Task, error) {
 }
 
 func (s *TodoService) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
+	if status == "" {
+		status = "Pending"
+	}
+
 	return s.repo.UpdateTaskStatus(taskID, status)
 }
 
@@ -42,6 +46,10 @@ func (s *TodoService) DeleteTask(taskID int) error {
 }
 
 func (s *TodoService) CreateUser(name string) (*model.User, error) {
+	if name == "" {
+		return nil, nil
+	}
+
 	user := &model.User{
 		Name: name,
 	}
@@ -58,6 +66,10 @@ func (s *TodoService) GetUser(userID int) (*model.User, error) {
 }
 
 func (s *TodoService) UpdateUserName(userID int, name string) (*model.User, error) {
+	if name == "" {
+		return nil, nil
+	}
+
 	return s.repo.UpdateUserName(userID, name)
 }
 
