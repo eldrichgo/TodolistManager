@@ -8,11 +8,11 @@ import (
 
 // TaskRepository defines the methods that any implementation of a task repository must have
 type TaskRepository interface {
-	Create(task *model.Task) (*model.Task, error)
-	FindAll() ([]model.Task, error)
+	CreateTask(task *model.Task) (*model.Task, error)
+	FindAllTasks() ([]model.Task, error)
 	FindTask(taskID int) (*model.Task, error)
-	UpdateStatus(taskID int, status string) (*model.Task, error)
-	Delete(taskID int) error
+	UpdateTaskStatus(taskID int, status string) (*model.Task, error)
+	DeleteTask(taskID int) error
 }
 
 // Task is the implementation of TaskRepositoryInterface
@@ -25,7 +25,7 @@ func NewTaskRepository(db *gorm.DB) TaskRepository {
 	return &Task{db: db}
 }
 
-func (r *Task) Create(task *model.Task) (*model.Task, error) {
+func (r *Task) CreateTask(task *model.Task) (*model.Task, error) {
 	if err := r.db.Create(&task).Error; err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (r *Task) Create(task *model.Task) (*model.Task, error) {
 	return task, nil
 }
 
-func (r *Task) FindAll() ([]model.Task, error) {
+func (r *Task) FindAllTasks() ([]model.Task, error) {
 	var tasks []model.Task
 	err := r.db.Where("deleted_at is null").Find(&tasks).Error
 	return tasks, err
@@ -47,7 +47,7 @@ func (r *Task) FindTask(taskID int) (*model.Task, error) {
 
 	return task, nil
 }
-func (r *Task) UpdateStatus(taskID int, status string) (*model.Task, error) {
+func (r *Task) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	var task *model.Task
 
 	if err := r.db.Model(&model.Task{}).Where("id = ?", taskID).Update("status", status).Error; err != nil {
@@ -61,7 +61,7 @@ func (r *Task) UpdateStatus(taskID int, status string) (*model.Task, error) {
 	return task, nil
 }
 
-func (r *Task) Delete(taskID int) error {
+func (r *Task) DeleteTask(taskID int) error {
 	return r.db.Delete(&model.Task{}, taskID).Error
 	// time.Time.UTC()
 }
