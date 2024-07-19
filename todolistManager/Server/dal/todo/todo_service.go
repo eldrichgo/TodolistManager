@@ -29,6 +29,10 @@ func (s *TaskService) GetAllTasks() ([]model.Task, error) {
 	return s.repo.FindAll()
 }
 
+func (s *TaskService) GetTask(taskID int) (*model.Task, error) {
+	return s.repo.FindTask(taskID)
+}
+
 func (s *TaskService) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	return s.repo.UpdateStatus(taskID, status)
 }

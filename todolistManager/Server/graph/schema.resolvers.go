@@ -63,6 +63,17 @@ func (r *queryResolver) Tasks(ctx context.Context) ([]*model.Task, error) {
 	return result, nil
 }
 
+// Task is the resolver for the task field.
+func (r *queryResolver) Task(ctx context.Context, id int) (*model.Task, error) {
+	svc := todo.NewTaskService(todo.NewTaskRepository(r.Db))
+	task, err := svc.GetTask(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
