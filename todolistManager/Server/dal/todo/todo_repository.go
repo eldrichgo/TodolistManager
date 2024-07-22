@@ -13,12 +13,14 @@ type TodoRepository interface {
 	FindTask(taskID int) (*model.Task, error)
 	UpdateTaskStatus(taskID int, status string) (*model.Task, error)
 	DeleteTask(taskID int) error
+	FindUsersofTask(taskID int) ([]model.User, error)
 
 	CreateUser(user *model.User) (*model.User, error)
 	FindAllUsers() ([]model.User, error)
 	FindUser(userID int) (*model.User, error)
 	UpdateUserName(userID int, name string) (*model.User, error)
 	DeleteUser(userID int) error
+	FindTasksofUser(userID int) ([]model.Task, error)
 }
 
 // Todo is the implementation of TodoRepositoryInterface
@@ -72,6 +74,17 @@ func (r *Todo) DeleteTask(taskID int) error {
 	// time.Time.UTC()
 }
 
+func (r *Todo) FindUsersofTask(taskID int) ([]model.User, error) {
+	var users []model.User
+	if err := r.db.Model(&model.User{}).Where("users_tasks.tasks_id", taskID).
+		Joins("JOIN users_tasks ON users_tasks.users_id = users.id").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (r *Todo) CreateUser(user *model.User) (*model.User, error) {
 	if err := r.db.Create(&user).Error; err != nil {
 		return nil, err
@@ -111,4 +124,15 @@ func (r *Todo) UpdateUserName(userID int, name string) (*model.User, error) {
 
 func (r *Todo) DeleteUser(userID int) error {
 	return r.db.Delete(&model.User{}, userID).Error
+}
+
+func (r *Todo) FindTasksofUser(userID int) ([]model.Task, error) {
+	var tasks []model.Task
+	if err := r.db.Model(&model.Task{}).Where("users_tasks.users_id", userID).
+		Joins("JOIN users_tasks ON users_tasks.tasks_id = tasks.id").
+		Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }

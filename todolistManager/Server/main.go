@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -48,7 +49,7 @@ func main() {
 	// Initialize schema
 	schema := graph.NewExecutableSchema(graph.Config{Resolvers: resolver})
 	h := handler.NewDefaultServer(schema)
-
+	h.Use(extension.FixedComplexityLimit(20))
 	router := gin.Default()
 
 	router.POST("/query", func(c *gin.Context) {

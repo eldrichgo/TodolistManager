@@ -1,12 +1,27 @@
+directive @goField(
+  forceResolver: Boolean
+  name: String
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
 type Task {
   id: Int!
   title: String!
   status: String!
+  users: [User!]!
+    @goField(
+      forceResolver: true
+      name: "users"
+    )
 }
 
 type User {
   id: Int!
   name: String!
+  tasks: [Task!]!
+    @goField(
+      forceResolver: true
+      name: "tasks"
+    )
 }
 
 type Query {

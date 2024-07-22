@@ -45,6 +45,10 @@ func (s *TodoService) DeleteTask(taskID int) error {
 	return s.repo.DeleteTask(taskID)
 }
 
+func (s *TodoService) GetAllUsersOfTask(taskID int) ([]model.User, error) {
+	return s.repo.FindUsersofTask(taskID)
+}
+
 func (s *TodoService) CreateUser(name string) (*model.User, error) {
 	if name == "" {
 		return nil, nil
@@ -75,4 +79,8 @@ func (s *TodoService) UpdateUserName(userID int, name string) (*model.User, erro
 
 func (s *TodoService) DeleteUser(userID int) error {
 	return s.repo.DeleteUser(userID)
+}
+
+func (s *TodoService) GetAllTasksofUser(userID int) ([]model.Task, error) {
+	return s.repo.FindTasksofUser(userID)
 }

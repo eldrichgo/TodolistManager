@@ -14,12 +14,14 @@ type Query struct {
 }
 
 type Task struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Status string `json:"status"`
+	ID     int     `json:"id"`
+	Title  string  `json:"title"`
+	Status string  `json:"status"`
+	users  []*User `json:"users"`
 }
 
 type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID    int     `json:"id"`
+	Name  string  `json:"name"`
+	tasks []*Task `json:"tasks"`
 }
