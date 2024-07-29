@@ -33,7 +33,7 @@ type Query {
 
 input InputTask {
   title: String!
-  status: String!
+  status: String
 }
 
 type Mutation {

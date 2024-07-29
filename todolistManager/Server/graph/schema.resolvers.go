@@ -11,7 +11,6 @@ import (
 )
 
 // CreateTask is the resolver for the createTask field.
-// TODO: Add user_id
 func (r *mutationResolver) CreateTask(ctx context.Context, input model.InputTask) (*model.Task, error) {
 	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	task, err := svc.CreateTask(input)

@@ -3,8 +3,8 @@
 package model
 
 type InputTask struct {
-	Title  string `json:"title"`
-	Status string `json:"status"`
+	Title  string  `json:"title"`
+	Status *string `json:"status,omitempty"`
 }
 
 type Mutation struct {

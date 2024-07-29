@@ -1,6 +1,9 @@
 package todo
 
-import "server/graph/model"
+import (
+	"errors"
+	"server/graph/model"
+)
 
 // TodoService defines the methods that any implementation of a todo service must have
 type TodoService struct {
@@ -13,13 +16,17 @@ func NewTodoService(repo TodoRepository) *TodoService {
 }
 
 func (s *TodoService) CreateTask(taskinput model.InputTask) (*model.Task, error) {
-	if taskinput.Status == "" {
-		taskinput.Status = "Pending"
+	status := "Pending"
+	if taskinput.Status == nil {
+		taskinput.Status = &status
+	}
+	if *taskinput.Status != "Pending" && *taskinput.Status != "Completed" && *taskinput.Status != "In Progress" {
+		return nil, errors.New("invalid status")
 	}
 
 	task := &model.Task{
 		Title:  taskinput.Title,
-		Status: taskinput.Status,
+		Status: *taskinput.Status,
 	}
 
 	return s.repo.CreateTask(task)
