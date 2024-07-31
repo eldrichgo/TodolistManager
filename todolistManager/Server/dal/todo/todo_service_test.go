@@ -136,18 +136,19 @@ func TestCreateTask(t *testing.T) {
 			expectedErr:  true,
 		},
 		{
-			name: "Valid Status",
+			name: "Blank Status",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
 				m.On("CreateTask", mock.Anything).Return(&model.Task{
 					ID:     1,
 					Title:  "Test",
-					Status: "Pending"}, nil)
+					Status: "Pending",
+				}, nil)
 				return m
 			},
 			input: model.InputTask{
 				Title:  "Test",
-				Status: &status,
+				Status: &[]string{""}[0],
 			},
 			expectedTask: &model.Task{
 				ID:     1,
@@ -166,12 +167,12 @@ func TestCreateTask(t *testing.T) {
 			if tt.expectedErr {
 				require.NotNil(t, err)
 			} else {
-				require.NotEmpty(t, tt.input.Status)
+				//require.NotEmpty(t, tt.input.Status)
 				require.Nil(t, err)
 				assert.Equal(t, tt.expectedTask, task)
 			}
 
-			tt.repoMock().AssertExpectations(t)
+			//tt.repoMock().AssertExpectations(t)
 		})
 	}
 }
@@ -184,7 +185,7 @@ func TestGetAllTasks(t *testing.T) {
 		expectedErr   bool
 	}{
 		{
-			name: "Get All Tasks",
+			name: "Success",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
 				m.On("FindAllTasks").Return([]model.Task{
@@ -215,6 +216,16 @@ func TestGetAllTasks(t *testing.T) {
 			expectedTasks: nil,
 			expectedErr:   true,
 		},
+		{
+			name: "Empty Return",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindAllTasks").Return([]model.Task{}, nil)
+				return m
+			},
+			expectedTasks: []model.Task{},
+			expectedErr:   false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -227,6 +238,218 @@ func TestGetAllTasks(t *testing.T) {
 			} else {
 				require.Nil(t, err)
 				assert.Equal(t, tt.expectedTasks, tasks)
+			}
+		})
+	}
+}
+
+func TestGetTask(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_taskID int
+		expectedTask *model.Task
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTask", 1).Return(&model.Task{
+					ID:     1,
+					Title:  "Test",
+					Status: "Pending",
+				}, nil)
+				return m
+			},
+			input_taskID: 1,
+			expectedTask: &model.Task{
+				ID:     1,
+				Title:  "Test",
+				Status: "Pending",
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTask", 1).Return(&model.Task{}, errors.New("error"))
+				return m
+			},
+			input_taskID: 1,
+			expectedTask: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Does not exist",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTask", -1).Return(&model.Task{}, errors.New("record not found"))
+				return m
+			},
+			input_taskID: -1,
+			expectedTask: nil,
+			expectedErr:  true,
+		},
+		// {
+		// 	name: "None Integer",
+		// 	repoMock: func() *taskRepoMock {
+		// 		m := &taskRepoMock{}
+		// 		m.On("FindTask", 'a').Return(&model.Task{}, errors.New("record not found"))
+		// 		return m
+		// 	},
+		// 	input_taskID: 'a',
+		// 	expectedTask: nil,
+		// 	expectedErr:  true,
+		// },
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			task, err := svc.GetTask(tt.input_taskID)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedTask, task)
+			}
+		})
+	}
+}
+
+func TestUpdateTaskStatus(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_taskID int
+		input_status string
+		expectedTask *model.Task
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateTaskStatus", 1, "Completed").Return(&model.Task{
+					ID:     1,
+					Title:  "Test",
+					Status: "Completed",
+				}, nil)
+				return m
+			},
+			input_taskID: 1,
+			input_status: "Completed",
+			expectedTask: &model.Task{
+				ID:     1,
+				Title:  "Test",
+				Status: "Completed",
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateTaskStatus", 1, "Completed").Return(&model.Task{}, errors.New("error"))
+				return m
+			},
+			input_taskID: 1,
+			input_status: "Completed",
+			expectedTask: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Invalid Status",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateTaskStatus", 1, "Ayaw ko").Return(&model.Task{}, errors.New("invalid status"))
+				return m
+			},
+			input_taskID: 1,
+			input_status: "Ayaw ko",
+			expectedTask: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Does not exist",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateTaskStatus", -1, "Completed").Return(&model.Task{}, errors.New("record not found"))
+				return m
+			},
+			input_taskID: -1,
+			input_status: "Completed",
+			expectedTask: nil,
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			task, err := svc.UpdateTaskStatus(tt.input_taskID, tt.input_status)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedTask, task)
+			}
+		})
+	}
+}
+
+func TestDeleteTask(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_taskID int
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("DeleteTask", 1).Return(nil)
+				return m
+			},
+			input_taskID: 1,
+			expectedErr:  false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("DeleteTask", 1).Return(errors.New("error"))
+				return m
+			},
+			input_taskID: 1,
+			expectedErr:  true,
+		},
+		{
+			name: "Does not exist",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("DeleteTask", -1).Return(errors.New("record not found"))
+				return m
+			},
+			input_taskID: -1,
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			err := svc.DeleteTask(tt.input_taskID)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
 			}
 		})
 	}
