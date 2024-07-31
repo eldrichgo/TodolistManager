@@ -44,10 +44,18 @@ func (s *TodoService) GetAllTasks() ([]model.Task, error) {
 }
 
 func (s *TodoService) GetTask(taskID int) (*model.Task, error) {
+	if taskID <= 0 {
+		return nil, errors.New("invalid task id")
+	}
+
 	return s.repo.FindTask(taskID)
 }
 
 func (s *TodoService) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
+	if taskID <= 0 {
+		return nil, errors.New("invalid task id")
+	}
+
 	if status != "Pending" && status != "Completed" && status != "In Progress" {
 		return nil, errors.New("invalid status")
 	}
@@ -56,6 +64,10 @@ func (s *TodoService) UpdateTaskStatus(taskID int, status string) (*model.Task, 
 }
 
 func (s *TodoService) DeleteTask(taskID int) error {
+	if taskID <= 0 {
+		return errors.New("invalid task id")
+	}
+
 	return s.repo.DeleteTask(taskID)
 }
 
@@ -84,10 +96,18 @@ func (s *TodoService) GetAllUsers() ([]model.User, error) {
 }
 
 func (s *TodoService) GetUser(userID int) (*model.User, error) {
+	if userID <= 0 {
+		return nil, errors.New("invalid user id")
+	}
+
 	return s.repo.FindUser(userID)
 }
 
 func (s *TodoService) UpdateUserName(userID int, name string) (*model.User, error) {
+	if userID <= 0 {
+		return nil, errors.New("invalid user id")
+	}
+
 	if name == "" {
 		return nil, errors.New("invalid name")
 	}
