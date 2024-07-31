@@ -17,7 +17,7 @@ func NewTodoService(repo TodoRepository) *TodoService {
 
 func (s *TodoService) CreateTask(taskinput model.InputTask) (*model.Task, error) {
 	status := "Pending"
-	if taskinput.Status == nil {
+	if taskinput.Status == nil || *taskinput.Status == "" {
 		taskinput.Status = &status
 	}
 	if *taskinput.Status != "Pending" && *taskinput.Status != "Completed" && *taskinput.Status != "In Progress" {
