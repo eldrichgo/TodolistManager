@@ -72,6 +72,9 @@ func (s *TodoService) DeleteTask(taskID int) error {
 }
 
 func (s *TodoService) GetAllUsersOfTask(taskID int) ([]model.User, error) {
+	if taskID <= 0 {
+		return nil, errors.New("invalid task id")
+	}
 	return s.repo.FindUsersofTask(taskID)
 }
 
@@ -120,9 +123,17 @@ func (s *TodoService) UpdateUserName(userID int, name string) (*model.User, erro
 }
 
 func (s *TodoService) DeleteUser(userID int) error {
+	if userID <= 0 {
+		return errors.New("invalid user id")
+	}
+
 	return s.repo.DeleteUser(userID)
 }
 
 func (s *TodoService) GetAllTasksofUser(userID int) ([]model.Task, error) {
+	if userID <= 0 {
+		return nil, errors.New("invalid user id")
+	}
+
 	return s.repo.FindTasksofUser(userID)
 }

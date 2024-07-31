@@ -125,7 +125,7 @@ func TestCreateTask(t *testing.T) {
 			name: "Invalid Status",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
-				m.On("CreateTask", mock.Anything).Return(&model.Task{}, errors.New("invalid status"))
+				m.On("CreateTask", mock.Anything).Return(&model.Task{}, nil)
 				return m
 			},
 			input: model.InputTask{
@@ -282,10 +282,10 @@ func TestGetTask(t *testing.T) {
 			expectedErr:  true,
 		},
 		{
-			name: "Does not exist",
+			name: "Negative Range",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
-				m.On("FindTask", -1).Return(&model.Task{}, errors.New("record not found"))
+				m.On("FindTask", -1).Return(&model.Task{}, nil)
 				return m
 			},
 			input_taskID: -1,
@@ -365,7 +365,7 @@ func TestUpdateTaskStatus(t *testing.T) {
 			name: "Invalid Status",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
-				m.On("UpdateTaskStatus", 1, "Ayaw ko").Return(&model.Task{}, errors.New("invalid status"))
+				m.On("UpdateTaskStatus", 1, "Ayaw ko").Return(&model.Task{}, nil)
 				return m
 			},
 			input_taskID: 1,
@@ -374,10 +374,10 @@ func TestUpdateTaskStatus(t *testing.T) {
 			expectedErr:  true,
 		},
 		{
-			name: "Does not exist",
+			name: "Negative Range",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
-				m.On("UpdateTaskStatus", -1, "Completed").Return(&model.Task{}, errors.New("record not found"))
+				m.On("UpdateTaskStatus", -1, "Completed").Return(&model.Task{}, nil)
 				return m
 			},
 			input_taskID: -1,
@@ -430,10 +430,10 @@ func TestDeleteTask(t *testing.T) {
 			expectedErr:  true,
 		},
 		{
-			name: "Does not exist",
+			name: "Negative Range",
 			repoMock: func() *taskRepoMock {
 				m := &taskRepoMock{}
-				m.On("DeleteTask", -1).Return(errors.New("record not found"))
+				m.On("DeleteTask", -1).Return(nil)
 				return m
 			},
 			input_taskID: -1,
@@ -450,6 +450,515 @@ func TestDeleteTask(t *testing.T) {
 				require.NotNil(t, err)
 			} else {
 				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestGetAllUsersofTask(t *testing.T) {
+	var tests = []struct {
+		name          string
+		repoMock      func() *taskRepoMock
+		input_taskID  int
+		expectedUsers []model.User
+		expectedErr   bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUsersofTask", 1).Return([]model.User{
+					{
+						ID:   1,
+						Name: "TestUser",
+						// tasks: []*model.Task{}?
+					},
+				}, nil)
+				return m
+			},
+			input_taskID: 1,
+			expectedUsers: []model.User{
+				{
+					ID:   1,
+					Name: "TestUser",
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUsersofTask", 1).Return([]model.User{}, errors.New("error"))
+				return m
+			},
+			input_taskID:  1,
+			expectedUsers: nil,
+			expectedErr:   true,
+		},
+		{
+			name: "Negative Range",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUsersofTask", -1).Return([]model.User{}, nil)
+				return m
+			},
+			input_taskID:  -1,
+			expectedUsers: nil,
+			expectedErr:   true,
+		},
+		{
+			name: "Empty Return",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUsersofTask", 1).Return([]model.User{}, nil)
+				return m
+			},
+			input_taskID:  1,
+			expectedUsers: []model.User{},
+			expectedErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			users, err := svc.GetAllUsersOfTask(tt.input_taskID)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedUsers, users)
+			}
+		})
+	}
+}
+
+func TestCreateUser(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_name   string
+		expectedUser *model.User
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("CreateUser", mock.Anything).Return(&model.User{
+					ID:   1,
+					Name: "TestUser",
+				}, nil)
+				return m
+			},
+			input_name: "TestUser",
+			expectedUser: &model.User{
+				ID:   1,
+				Name: "TestUser",
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("CreateUser", mock.Anything).Return(&model.User{}, errors.New("error"))
+				return m
+			},
+			input_name:   "TestUser",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Blank Name",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("CreateUser", mock.Anything).Return(&model.User{}, nil)
+				return m
+			},
+			input_name:   "",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Name with Numbers",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("CreateUser", mock.Anything).Return(&model.User{}, nil)
+				return m
+			},
+			input_name:   "TestUser1",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			user, err := svc.CreateUser(tt.input_name)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedUser, user)
+			}
+		})
+	}
+}
+
+func TestGetAllUsers(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		expectedUser []model.User
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindAllUsers").Return([]model.User{
+					{
+						ID:   1,
+						Name: "TestUser",
+					},
+				}, nil)
+				return m
+			},
+			expectedUser: []model.User{
+				{
+					ID:   1,
+					Name: "TestUser",
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindAllUsers").Return([]model.User{}, errors.New("error"))
+				return m
+			},
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Empty Return",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindAllUsers").Return([]model.User{}, nil)
+				return m
+			},
+			expectedUser: []model.User{},
+			expectedErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			users, err := svc.GetAllUsers()
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedUser, users)
+			}
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_userID int
+		expectedUser *model.User
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUser", 1).Return(&model.User{
+					ID:   1,
+					Name: "TestUser",
+				}, nil)
+				return m
+			},
+			input_userID: 1,
+			expectedUser: &model.User{
+				ID:   1,
+				Name: "TestUser",
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUser", 1).Return(&model.User{}, errors.New("error"))
+				return m
+			},
+			input_userID: 1,
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Negative Range",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindUser", -1).Return(&model.User{}, nil)
+				return m
+			},
+			input_userID: -1,
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			user, err := svc.GetUser(tt.input_userID)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedUser, user)
+			}
+		})
+	}
+}
+
+func TestUpdateUserName(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_userID int
+		input_name   string
+		expectedUser *model.User
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateUserName", 1, "NewName").Return(&model.User{
+					ID:   1,
+					Name: "NewName",
+				}, nil)
+				return m
+			},
+			input_userID: 1,
+			input_name:   "NewName",
+			expectedUser: &model.User{
+				ID:   1,
+				Name: "NewName",
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateUserName", 1, "NewName").Return(&model.User{}, errors.New("error"))
+				return m
+			},
+			input_userID: 1,
+			input_name:   "NewName",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Blank Name",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateUserName", 1, "").Return(&model.User{}, nil)
+				return m
+			},
+			input_userID: 1,
+			input_name:   "",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Name with Numbers",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateUserName", 1, "NewName1").Return(&model.User{}, nil)
+				return m
+			},
+			input_userID: 1,
+			input_name:   "NewName1",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+		{
+			name: "Negative Range",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("UpdateUserName", -1, "NewName").Return(&model.User{}, nil)
+				return m
+			},
+			input_userID: -1,
+			input_name:   "NewName",
+			expectedUser: nil,
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			user, err := svc.UpdateUserName(tt.input_userID, tt.input_name)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedUser, user)
+			}
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	var tests = []struct {
+		name         string
+		repoMock     func() *taskRepoMock
+		input_userID int
+		expectedErr  bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("DeleteUser", 1).Return(nil)
+				return m
+			},
+			input_userID: 1,
+			expectedErr:  false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("DeleteUser", 1).Return(errors.New("error"))
+				return m
+			},
+			input_userID: 1,
+			expectedErr:  true,
+		},
+		{
+			name: "Negative Range",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("DeleteUser", -1).Return(nil)
+				return m
+			},
+			input_userID: -1,
+			expectedErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			err := svc.DeleteUser(tt.input_userID)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestGetAllTasksofUser(t *testing.T) {
+	var tests = []struct {
+		name          string
+		repoMock      func() *taskRepoMock
+		input_userID  int
+		expectedTasks []model.Task
+		expectedErr   bool
+	}{
+		{
+			name: "Success",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTasksofUser", 1).Return([]model.Task{
+					{
+						ID:     1,
+						Title:  "Test",
+						Status: "Pending",
+					},
+				}, nil)
+				return m
+			},
+			input_userID: 1,
+			expectedTasks: []model.Task{
+				{
+					ID:     1,
+					Title:  "Test",
+					Status: "Pending",
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name: "Error",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTasksofUser", 1).Return([]model.Task{}, errors.New("error"))
+				return m
+			},
+			input_userID:  1,
+			expectedTasks: nil,
+			expectedErr:   true,
+		},
+		{
+			name: "Negative Range",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTasksofUser", -1).Return([]model.Task{}, nil)
+				return m
+			},
+			input_userID:  -1,
+			expectedTasks: nil,
+			expectedErr:   true,
+		},
+		{
+			name: "Empty Return",
+			repoMock: func() *taskRepoMock {
+				m := &taskRepoMock{}
+				m.On("FindTasksofUser", 1).Return([]model.Task{}, nil)
+				return m
+			},
+			input_userID:  1,
+			expectedTasks: []model.Task{},
+			expectedErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := NewTodoService(tt.repoMock())
+			tasks, err := svc.GetAllTasksofUser(tt.input_userID)
+
+			if tt.expectedErr {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+				assert.Equal(t, tt.expectedTasks, tasks)
 			}
 		})
 	}
