@@ -2,6 +2,7 @@ package todo
 
 import (
 	"errors"
+	"regexp"
 	"server/graph/model"
 )
 
@@ -13,6 +14,12 @@ type TodoService struct {
 // NewTodoService creates a new instance of TodoService
 func NewTodoService(repo TodoRepository) *TodoService {
 	return &TodoService{repo: repo}
+}
+
+// Helper function to check if a string contains numbers
+func containsNumbers(s string) bool {
+	re := regexp.MustCompile(`[0-9]`)
+	return re.MatchString(s)
 }
 
 func (s *TodoService) CreateTask(taskinput model.InputTask) (*model.Task, error) {
@@ -61,6 +68,10 @@ func (s *TodoService) CreateUser(name string) (*model.User, error) {
 		return nil, errors.New("invalid name")
 	}
 
+	if containsNumbers(name) {
+		return nil, errors.New("invalid name")
+	}
+
 	user := &model.User{
 		Name: name,
 	}
@@ -78,6 +89,10 @@ func (s *TodoService) GetUser(userID int) (*model.User, error) {
 
 func (s *TodoService) UpdateUserName(userID int, name string) (*model.User, error) {
 	if name == "" {
+		return nil, errors.New("invalid name")
+	}
+
+	if containsNumbers(name) {
 		return nil, errors.New("invalid name")
 	}
 
