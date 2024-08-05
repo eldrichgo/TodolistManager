@@ -14,6 +14,7 @@ type TodoRepository interface {
 	UpdateTaskStatus(taskID int, status string) (*model.Task, error)
 	DeleteTask(taskID int) error
 	FindUsersofTask(taskID int) ([]model.User, error)
+	FindTasksbyUserIDs(userIDs []int) ([]*model.Task, error)
 
 	CreateUser(user *model.User) (*model.User, error)
 	FindAllUsers() ([]model.User, error)
@@ -83,6 +84,14 @@ func (r *Todo) FindUsersofTask(taskID int) ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *Todo) FindTasksbyUserIDs(userIDs []int) ([]*model.Task, error) {
+	var tasks []*model.Task
+	err := r.db.Model(&model.Task{}).Where("users_tasks.users_id IN ?", userIDs).
+		Joins("JOIN users_tasks ON users_tasks.tasks_id = tasks.id").Find(&tasks).Error
+
+	return tasks, err
 }
 
 func (r *Todo) CreateUser(user *model.User) (*model.User, error) {

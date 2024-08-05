@@ -78,6 +78,10 @@ func (s *TodoService) GetAllUsersOfTask(taskID int) ([]model.User, error) {
 	return s.repo.FindUsersofTask(taskID)
 }
 
+func (s *TodoService) GetTasksbyUserIDs(userIDs []int) ([]*model.Task, error) {
+	return s.repo.FindTasksbyUserIDs(userIDs)
+}
+
 func (s *TodoService) CreateUser(name string) (*model.User, error) {
 	if name == "" {
 		return nil, errors.New("invalid name")
