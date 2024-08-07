@@ -23,6 +23,7 @@ type TodoRepository interface {
 	UpdateUserName(userID int, name string) (*model.User, error)
 	DeleteUser(userID int) error
 	FindTasksofUser(userID int) ([]model.Task, error)
+	FindUsersbyTaskIDs(taskIDs []int) ([]*model.UserTask, error)
 }
 
 // Todo is the implementation of TodoRepositoryInterface
@@ -167,4 +168,18 @@ func (r *Todo) FindTasksofUser(userID int) ([]model.Task, error) {
 	}
 
 	return tasks, nil
+}
+
+func (r *Todo) FindUsersbyTaskIDs(taskIDs []int) ([]*model.UserTask, error) {
+	var users []*model.UserTask
+	err := r.db.Model(&model.User{}).Select("users_tasks.task_id, users.*").
+		Where("users_tasks.task_id IN ?", taskIDs).
+		Joins("JOIN users_tasks ON users_tasks.user_id = users.id").
+		Find(&users).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, err
 }

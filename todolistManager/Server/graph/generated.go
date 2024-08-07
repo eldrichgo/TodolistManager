@@ -79,8 +79,9 @@ type ComplexityRoot struct {
 	}
 
 	UserTask struct {
-		ID     func(childComplexity int) int
+		Name   func(childComplexity int) int
 		Status func(childComplexity int) int
+		TaskID func(childComplexity int) int
 		Title  func(childComplexity int) int
 		UserID func(childComplexity int) int
 	}
@@ -285,12 +286,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Tasks(childComplexity), true
 
-	case "UserTask.id":
-		if e.complexity.UserTask.ID == nil {
+	case "UserTask.name":
+		if e.complexity.UserTask.Name == nil {
 			break
 		}
 
-		return e.complexity.UserTask.ID(childComplexity), true
+		return e.complexity.UserTask.Name(childComplexity), true
 
 	case "UserTask.status":
 		if e.complexity.UserTask.Status == nil {
@@ -298,6 +299,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserTask.Status(childComplexity), true
+
+	case "UserTask.taskID":
+		if e.complexity.UserTask.TaskID == nil {
+			break
+		}
+
+		return e.complexity.UserTask.TaskID(childComplexity), true
 
 	case "UserTask.title":
 		if e.complexity.UserTask.Title == nil {
@@ -1704,8 +1712,8 @@ func (ec *executionContext) fieldContext_UserTask_userID(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _UserTask_id(ctx context.Context, field graphql.CollectedField, obj *model.UserTask) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserTask_id(ctx, field)
+func (ec *executionContext) _UserTask_name(ctx context.Context, field graphql.CollectedField, obj *model.UserTask) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserTask_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1718,7 +1726,51 @@ func (ec *executionContext) _UserTask_id(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserTask_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserTask",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserTask_taskID(ctx context.Context, field graphql.CollectedField, obj *model.UserTask) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserTask_taskID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1735,7 +1787,7 @@ func (ec *executionContext) _UserTask_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_UserTask_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_UserTask_taskID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserTask",
 		Field:      field,
@@ -4030,8 +4082,13 @@ func (ec *executionContext) _UserTask(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "id":
-			out.Values[i] = ec._UserTask_id(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._UserTask_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "taskID":
+			out.Values[i] = ec._UserTask_taskID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

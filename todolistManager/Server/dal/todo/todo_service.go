@@ -145,3 +145,7 @@ func (s *TodoService) GetAllTasksofUser(userID int) ([]model.Task, error) {
 
 	return s.repo.FindTasksofUser(userID)
 }
+
+func (s *TodoService) GetUsersbyTaskIDs(taskIDs []int) ([]*model.UserTask, error) {
+	return s.repo.FindUsersbyTaskIDs(taskIDs)
+}

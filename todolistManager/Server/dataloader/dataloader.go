@@ -21,6 +21,8 @@ const loadersKey = loaderString("dataloaders")
 
 type Loaders struct {
 	TasksbyUserID TasksbyUserIDLoader
+	Tasks         TasksLoader
+	UsersbyTaskID UsersbyTaskIDLoader
 }
 
 func initLogger() logger.Interface {
@@ -47,24 +49,22 @@ func Middleware() gin.HandlerFunc {
 				fetch: func(userIDs []int) ([][]*model.Task, []error) {
 					dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
 					db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: initLogger()})
-					log.Println("open connection")
 					if err != nil {
 						log.Fatalf("Failed to connect to the database: %v", err)
 					}
 
 					svc := todo.NewTodoService(todo.NewTodoRepository(db))
 					resp, err := svc.GetTasksbyUserIDs(userIDs) //contains all tasks of all users. duplicate tasks are present
-
 					if err != nil {
 						return nil, []error{err}
 					}
 
 					tasksbyID := map[int][]*model.Task{}
-					for _, task := range resp {
-						tasksbyID[task.UserID] = append(tasksbyID[task.UserID], &model.Task{
-							ID:     task.ID,
-							Title:  task.Title,
-							Status: task.Status,
+					for _, usertask := range resp {
+						tasksbyID[usertask.UserID] = append(tasksbyID[usertask.UserID], &model.Task{
+							ID:     usertask.TaskID,
+							Title:  usertask.Title,
+							Status: usertask.Status,
 						})
 					}
 
@@ -76,7 +76,67 @@ func Middleware() gin.HandlerFunc {
 					return items, nil
 				},
 			},
-			//add new loaders here
+			Tasks: TasksLoader{
+				maxBatch: 2,
+				wait:     500 * time.Millisecond,
+				fetch: func(taskIDs []int) ([]*model.Task, []error) {
+					dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
+					db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: initLogger()})
+					if err != nil {
+						log.Fatalf("Failed to connect to the database: %v", err)
+					}
+
+					svc := todo.NewTodoService(todo.NewTodoRepository(db))
+					resp, err := svc.GetTasksbyIDs(taskIDs)
+					if err != nil {
+						return nil, []error{err}
+					}
+
+					taskByID := map[int]*model.Task{}
+					for _, task := range resp {
+						taskByID[task.ID] = &task
+					}
+
+					items := make([]*model.Task, len(taskIDs))
+					for i, taskID := range taskIDs {
+						items[i] = taskByID[taskID]
+					}
+
+					return items, nil
+				},
+			},
+			UsersbyTaskID: UsersbyTaskIDLoader{
+				maxBatch: 2,
+				wait:     500 * time.Millisecond,
+				fetch: func(taskIDs []int) ([][]*model.User, []error) {
+					dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
+					db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: initLogger()})
+					if err != nil {
+						log.Fatalf("Failed to connect to the database: %v", err)
+					}
+
+					svc := todo.NewTodoService(todo.NewTodoRepository(db))
+					resp, err := svc.GetUsersbyTaskIDs(taskIDs)
+					if err != nil {
+						return nil, []error{err}
+					}
+
+					usersbyID := map[int][]*model.User{}
+					for _, usertask := range resp {
+						usersbyID[usertask.TaskID] = append(usersbyID[usertask.TaskID], &model.User{
+							ID:   usertask.UserID,
+							Name: usertask.Name,
+						})
+					}
+
+					items := make([][]*model.User, len(taskIDs))
+					for i, taskID := range taskIDs {
+						items[i] = usersbyID[taskID]
+					}
+
+					return items, nil
+				},
+			},
 		})
 
 		c.Request = c.Request.WithContext(ctx)

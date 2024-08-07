@@ -30,6 +30,11 @@ func (m *taskRepoMock) FindTask(taskID int) (*model.Task, error) {
 	return args.Get(0).(*model.Task), args.Error(1)
 }
 
+func (m *taskRepoMock) FindTasksbyID(taskIDs []int) ([]model.Task, error) {
+	args := m.Called(taskIDs)
+	return args.Get(0).([]model.Task), args.Error(1)
+}
+
 func (m *taskRepoMock) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	args := m.Called(taskID, status)
 	return args.Get(0).(*model.Task), args.Error(1)
@@ -43,6 +48,11 @@ func (m *taskRepoMock) DeleteTask(taskID int) error {
 func (m *taskRepoMock) FindUsersofTask(taskID int) ([]model.User, error) {
 	args := m.Called(taskID)
 	return args.Get(0).([]model.User), args.Error(1)
+}
+
+func (m *taskRepoMock) FindTasksbyUserIDs(userIDs []int) ([]*model.UserTask, error) {
+	args := m.Called(userIDs)
+	return args.Get(0).([]*model.UserTask), args.Error(1)
 }
 
 // Mock functions for User operations in the repository
@@ -74,6 +84,11 @@ func (m *taskRepoMock) DeleteUser(userID int) error {
 func (m *taskRepoMock) FindTasksofUser(userID int) ([]model.Task, error) {
 	args := m.Called(userID)
 	return args.Get(0).([]model.Task), args.Error(1)
+}
+
+func (m *taskRepoMock) FindUsersbyTaskIDs(taskIDs []int) ([]*model.UserTask, error) {
+	args := m.Called(taskIDs)
+	return args.Get(0).([]*model.UserTask), args.Error(1)
 }
 
 func TestCreateTask(t *testing.T) {

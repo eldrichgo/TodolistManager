@@ -28,7 +28,8 @@ type User struct {
 
 type UserTask struct {
 	UserID int    `json:"userID"`
-	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	TaskID int    `json:"taskID"`
 	Title  string `json:"title"`
 	Status string `json:"status"`
 }

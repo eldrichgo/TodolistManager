@@ -97,6 +97,7 @@ func (r *queryResolver) Tasks(ctx context.Context) ([]*model.Task, error) {
 	}
 
 	return result, nil
+	//return dataloader.For(ctx).Tasks.LoadAll()
 }
 
 // Task is the resolver for the task field.
@@ -142,7 +143,7 @@ func (r *queryResolver) User(ctx context.Context, id int) (*model.User, error) {
 
 // Users is the resolver for the users field.
 func (r *taskResolver) Users(ctx context.Context, obj *model.Task) ([]*model.User, error) {
-	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
+	/*svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
 	users, err := svc.GetAllUsersOfTask(obj.ID)
 	if err != nil {
 		return nil, err
@@ -156,12 +157,12 @@ func (r *taskResolver) Users(ctx context.Context, obj *model.Task) ([]*model.Use
 		})
 	}
 
-	return result, nil
+	return result, nil*/
+	return dataloader.For(ctx).UsersbyTaskID.Load(obj.ID)
 }
 
 // Tasks is the resolver for the tasks field.
 func (r *userResolver) Tasks(ctx context.Context, obj *model.User) ([]*model.Task, error) {
-
 	return dataloader.For(ctx).TasksbyUserID.Load(obj.ID)
 }
 
