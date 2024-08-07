@@ -11,6 +11,7 @@ type TodoRepository interface {
 	CreateTask(task *model.Task) (*model.Task, error)
 	FindAllTasks() ([]model.Task, error)
 	FindTask(taskID int) (*model.Task, error)
+	FindTasksbyID(taskIDs []int) ([]model.Task, error)
 	UpdateTaskStatus(taskID int, status string) (*model.Task, error)
 	DeleteTask(taskID int) error
 	FindUsersofTask(taskID int) ([]model.User, error)
@@ -44,8 +45,11 @@ func (r *Todo) CreateTask(task *model.Task) (*model.Task, error) {
 
 func (r *Todo) FindAllTasks() ([]model.Task, error) {
 	var tasks []model.Task
-	err := r.db.Where("deleted_at IS NULL").Find(&tasks).Error
-	return tasks, err
+	if err := r.db.Where("deleted_at IS NULL").Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }
 
 func (r *Todo) FindTask(taskID int) (*model.Task, error) {
@@ -56,6 +60,16 @@ func (r *Todo) FindTask(taskID int) (*model.Task, error) {
 
 	return task, nil
 }
+
+func (r *Todo) FindTasksbyID(taskIDs []int) ([]model.Task, error) {
+	var tasks []model.Task
+	if err := r.db.Where("deleted_at IS NULL and id IN ?", taskIDs).Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
 func (r *Todo) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	var task *model.Task
 
@@ -110,8 +124,11 @@ func (r *Todo) CreateUser(user *model.User) (*model.User, error) {
 
 func (r *Todo) FindAllUsers() ([]model.User, error) {
 	var users []model.User
-	err := r.db.Where("deleted_at IS NULL").Find(&users).Error
-	return users, err
+	if err := r.db.Where("deleted_at IS NULL").Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (r *Todo) FindUser(userID int) (*model.User, error) {

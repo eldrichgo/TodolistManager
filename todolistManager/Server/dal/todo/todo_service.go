@@ -51,6 +51,10 @@ func (s *TodoService) GetTask(taskID int) (*model.Task, error) {
 	return s.repo.FindTask(taskID)
 }
 
+func (s *TodoService) GetTasksbyIDs(taskIDs []int) ([]model.Task, error) {
+	return s.repo.FindTasksbyID(taskIDs)
+}
+
 func (s *TodoService) UpdateTaskStatus(taskID int, status string) (*model.Task, error) {
 	if taskID <= 0 {
 		return nil, errors.New("invalid task id")
