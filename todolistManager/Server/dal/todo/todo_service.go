@@ -78,7 +78,7 @@ func (s *TodoService) GetAllUsersOfTask(taskID int) ([]model.User, error) {
 	return s.repo.FindUsersofTask(taskID)
 }
 
-func (s *TodoService) GetTasksbyUserIDs(userIDs []int) ([]*model.Task, error) {
+func (s *TodoService) GetTasksbyUserIDs(userIDs []int) ([]*model.UserTask, error) {
 	return s.repo.FindTasksbyUserIDs(userIDs)
 }
 

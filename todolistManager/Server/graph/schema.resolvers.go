@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"server/dal/todo"
+	"server/dataloader"
 	"server/graph/model"
 )
 
@@ -160,22 +161,8 @@ func (r *taskResolver) Users(ctx context.Context, obj *model.Task) ([]*model.Use
 
 // Tasks is the resolver for the tasks field.
 func (r *userResolver) Tasks(ctx context.Context, obj *model.User) ([]*model.Task, error) {
-	svc := todo.NewTodoService(todo.NewTodoRepository(r.Db))
-	tasks, err := svc.GetAllTasksofUser(obj.ID)
-	if err != nil {
-		return nil, err
-	}
 
-	var result []*model.Task
-	for _, task := range tasks {
-		result = append(result, &model.Task{
-			ID:     task.ID,
-			Title:  task.Title,
-			Status: task.Status,
-		})
-	}
-
-	return result, nil
+	return dataloader.For(ctx).TasksbyUserID.Load(obj.ID)
 }
 
 // Mutation returns MutationResolver implementation.

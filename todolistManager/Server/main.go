@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	"server/dataloader"
 	"server/graph"
 	r "server/graph"
 )
@@ -51,7 +52,7 @@ func main() {
 	h := handler.NewDefaultServer(schema)
 	h.Use(extension.FixedComplexityLimit(20))
 	router := gin.Default()
-
+	router.Use(dataloader.Middleware())
 	router.POST("/query", func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
 	})
