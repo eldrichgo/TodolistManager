@@ -97,7 +97,6 @@ func (r *queryResolver) Tasks(ctx context.Context) ([]*model.Task, error) {
 	}
 
 	return result, nil
-	//return dataloader.For(ctx).Tasks.LoadAll()
 }
 
 // Task is the resolver for the task field.

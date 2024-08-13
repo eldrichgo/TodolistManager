@@ -76,35 +76,6 @@ func Middleware() gin.HandlerFunc {
 					return items, nil
 				},
 			},
-			Tasks: TasksLoader{
-				maxBatch: 2,
-				wait:     500 * time.Millisecond,
-				fetch: func(taskIDs []int) ([]*model.Task, []error) {
-					dsn := "host=localhost user=postgres password=1234 dbname=todolist port=5432 sslmode=prefer TimeZone=Asia/Shanghai"
-					db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: initLogger()})
-					if err != nil {
-						log.Fatalf("Failed to connect to the database: %v", err)
-					}
-
-					svc := todo.NewTodoService(todo.NewTodoRepository(db))
-					resp, err := svc.GetTasksbyIDs(taskIDs)
-					if err != nil {
-						return nil, []error{err}
-					}
-
-					taskByID := map[int]*model.Task{}
-					for _, task := range resp {
-						taskByID[task.ID] = &task
-					}
-
-					items := make([]*model.Task, len(taskIDs))
-					for i, taskID := range taskIDs {
-						items[i] = taskByID[taskID]
-					}
-
-					return items, nil
-				},
-			},
 			UsersbyTaskID: UsersbyTaskIDLoader{
 				maxBatch: 2,
 				wait:     500 * time.Millisecond,
